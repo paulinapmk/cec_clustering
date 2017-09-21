@@ -93,7 +93,7 @@ def reduce_clusters(clusters, Y, cost, k, C, means, cov_matrix, N, p, percent):
         C = clustering(Y, C, k, means, cov_matrix, N, p, cost)
         clusters = assign_clusters(Y, C, k)
         index += 1
-    return C, clusters, means, cov_matrix, p
+    return C, clusters, means, cov_matrix, p, k
 
 def compute_new_values(k, Y, C, N, means, cov_matrix, p, model, trace_matrix, **args):
     """This functions calculates the new values of 'means', probabilities 'p'
@@ -177,7 +177,7 @@ def lloyd(k, epsilon, Y, N, percent, plot_progress = None, model="normal", **arg
         if plot_progress != None: showclusters(Y, C, np.array(means), k) #show progress
         n += 1
         #delete cluster if Card(Y) < w%
-        C, clusters, means, cov_matrix, p = reduce_clusters(clusters, Y, cost, k, C, means, cov_matrix, N, p, percent)
+        C, clusters, means, cov_matrix, p, k = reduce_clusters(clusters, Y, cost, k, C, means, cov_matrix, N, p, percent)
         trace_matrix = []
         means, p, cov_matrix, trace_matrix = compute_new_values(k, Y, C, N, means, cov_matrix, p, model, trace_matrix, **args)
         new_h = calculate_entropy(k, Y, C, N, p, cov_matrix, trace_matrix, model, **args)
@@ -230,10 +230,10 @@ def contour_plot(data, means, cov, N, C, K, Pr):
 #        c = plt.contour(x, y, z) #uncomment if you want labeled contour plot 
 #        plt.clabel(c) #uncomment if you want labeled contour plot
     plt.axis('equal')
-    plt.savefig("samples.png")
+    plt.savefig("clustering.png")
     plt.show()
 
-def run(n, data, N=2, K=1, percent=5, epsilon=0.01, model="normal", plot_progress=None, show_entropy=None, show_stats=None, **args):
+def run(n, data, N=2, K=10, percent=5, epsilon=0.01, model="normal", plot_progress=None, show_entropy=None, **args):
     """This function runs the main modules of the package. It returns the computed
     clusters in an array corresponding to the elements in 'data'."""
     centroids, C, cov, p = [], [], [], []
@@ -263,7 +263,7 @@ def show_final_entropy(optimal_k, h, entropy):
     print "Final entropy: ", h
     entr=entropy[1:]
     plt.plot(entr)
-    #plt.show()
+    plt.show()
     plt.savefig("entropy.png")
     
 
@@ -289,9 +289,8 @@ def load(name):
     """The function 'load(filename)' loads prepared data basing on its 'name'
     and returns stacked points and the target cluster; this works for 2D data"""
     import os
-#    points = []
     script_dir = os.path.dirname(__file__)
-    rel_path = "data/"+name+".txt"
+    rel_path = name+".txt"
     abs_file_path = os.path.join(script_dir, rel_path)
     data = read(abs_file_path)
     X, target = [], []
@@ -301,5 +300,3 @@ def load(name):
         X.append([line[0], line[1]])
     return np.vstack(X), target
 
-def hello():
-    print "Hi. I am CEC"
